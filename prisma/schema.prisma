@@ -62,8 +62,14 @@ model School {
   publicPhone         String?
   feesRangeMin        Int?
   feesRangeMax        Int?
+  nameSynthetic       Boolean                    @default(false)
   createdAt           DateTime                   @default(now())
   updatedAt           DateTime                   @updatedAt
+
+  @@index([districtCode])
+  @@index([blockCode])
+  @@index([nameEn])
+  @@index([category])
   appeals             Appeal[]
   ratings             ParentRating[]
   results             Result[]

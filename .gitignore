@@ -46,6 +46,9 @@ next-env.d.ts
 prisma/dev.db
 prisma/dev.db-journal
 
+# full UP schools dataset (large; not committed)
+data/up_schools_2024-25_full.csv
+
 # IDE
 .idea/
 .vscode/
