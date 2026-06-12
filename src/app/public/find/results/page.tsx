@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db';
 import { computeAge, ageToGrade, gradeLabel } from '@/lib/age-to-grade';
 import { ResultsSortSelect } from '@/components/public/ResultsSortSelect';
 import { FindResultsTable, type FindResultRow } from '@/components/public/FindResultsTable';
-import { SCHOOLS } from '@/lib/public/dummyData';
+import { SyntheticDataBanner } from '@/components/public/SyntheticDataBanner';
 import { searchSchools } from '@/lib/actions/findSchools';
 import type { Prisma } from '@prisma/client';
 
@@ -33,7 +33,7 @@ async function loadResults(
   feesMin?: number,
   feesMax?: number,
   sort: SortKey = 'name_asc',
-): Promise<FindResultRow[]> {
+): Promise<{ rows: FindResultRow[]; anySynthetic: boolean }> {
   try {
     const where: Prisma.SchoolWhereInput = {};
     if (district) where.districtCode = district;
@@ -61,6 +61,7 @@ async function loadResults(
       select: {
         udise: true,
         nameEn: true,
+        nameSynthetic: true,
         district: { select: { nameEn: true } },
         block: { select: { nameEn: true } },
       },
@@ -69,12 +70,15 @@ async function loadResults(
     });
 
     if (schools.length > 0) {
-      return schools.map((s) => ({
-        udise: s.udise,
-        name: s.nameEn,
-        districtName: s.district.nameEn,
-        blockName: s.block.nameEn,
-      }));
+      return {
+        rows: schools.map((s) => ({
+          udise: s.udise,
+          name: s.nameEn,
+          districtName: s.district.nameEn,
+          blockName: s.block.nameEn,
+        })),
+        anySynthetic: schools.some((s) => s.nameSynthetic),
+      };
     }
   } catch {
     // use server action fallback below
@@ -89,27 +93,15 @@ async function loadResults(
     feesMax,
   });
 
-  return schools.map((s) => ({
-    udise: s.udise,
-    name: s.name,
-    districtName: s.districtName,
-    blockName: s.blockName,
-  }));
-}
-
-function dummyRowsForDistrict(districtName: string, blockName?: string): FindResultRow[] {
-  return SCHOOLS.filter(
-    (s) =>
-      s.district.toLowerCase() === districtName.toLowerCase() ||
-      !districtName,
-  )
-    .filter((s) => !blockName || s.block.toLowerCase().includes(blockName.toLowerCase().split(' ')[0]))
-    .map((s) => ({
+  return {
+    rows: schools.map((s) => ({
       udise: s.udise,
       name: s.name,
-      districtName: s.district,
-      blockName: s.block,
-    }));
+      districtName: s.districtName,
+      blockName: s.blockName,
+    })),
+    anySynthetic: schools.length > 0,
+  };
 }
 
 export default async function FindResultsPage(props: {
@@ -151,11 +143,7 @@ export default async function FindResultsPage(props: {
   const feesMin = Number.isNaN(feesMinParam) ? undefined : feesMinParam;
   const feesMax = Number.isNaN(feesMaxParam) ? undefined : feesMaxParam;
 
-  let rows = await loadResults(district, block, districtName, blockName, feesMin, feesMax, sort);
-
-  if (rows.length === 0 && districtName) {
-    rows = dummyRowsForDistrict(districtName, blockName);
-  }
+  let { rows, anySynthetic } = await loadResults(district, block, districtName, blockName, feesMin, feesMax, sort);
 
   if (sort === 'name_desc') {
     rows = [...rows].sort((a, b) => b.name.localeCompare(a.name));
@@ -201,6 +189,8 @@ export default async function FindResultsPage(props: {
       </Link>
 
       <h1 className="text-2xl font-bold text-[#1B2A6B] sm:text-3xl">Search Results</h1>
+
+      {anySynthetic && <SyntheticDataBanner scope="list" />}
 
       <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-gray-600">

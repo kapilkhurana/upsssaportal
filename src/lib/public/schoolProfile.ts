@@ -167,6 +167,12 @@ export type SchoolProfileData = SchoolProfileBase & {
   };
 };
 
+// NOTE: the fields below (scores, attendance, enrolment splits, infrastructure
+// tags, learning outcomes, dropout rates, fees) are *derived* from a hash of
+// the UDISE because the Prisma School model does not yet carry them. The full
+// UP school CSV does carry many of them (enr_*, *_lab_cond, total_tch, …) —
+// once the schema is extended with the corresponding columns, replace these
+// derivations with real DB reads. Until then they remain synthetic stand-ins.
 export function buildSchoolProfileData(base: SchoolProfileBase): SchoolProfileData {
   const dummy = getDummySchoolRecord(base.udise);
   const derived = deriveResultFields(base.udise);

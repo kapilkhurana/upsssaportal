@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { SchoolProfileContent } from '@/components/public/SchoolProfileContent';
+import { SyntheticDataBanner } from '@/components/public/SyntheticDataBanner';
 import { buildSchoolProfileData, getDummySchoolRecord } from '@/lib/public/schoolProfile';
 
 export default async function SchoolProfilePage(props: {
@@ -11,6 +12,7 @@ export default async function SchoolProfilePage(props: {
   let name = '';
   let district = '';
   let block = '';
+  let nameSynthetic = false;
 
   try {
     const school = await prisma.school.findUnique({
@@ -22,6 +24,7 @@ export default async function SchoolProfilePage(props: {
       name = school.nameEn;
       district = school.district.nameEn;
       block = school.block.nameEn;
+      nameSynthetic = school.nameSynthetic;
     }
   } catch {
     // fall through to dummy lookup
@@ -35,9 +38,20 @@ export default async function SchoolProfilePage(props: {
     name = dummy.name;
     district = dummy.district;
     block = dummy.block;
+    // Local dummy fixtures used during pre-seed dev are also synthetic.
+    nameSynthetic = true;
   }
 
   const profile = buildSchoolProfileData({ udise, name, district, block });
 
-  return <SchoolProfileContent profile={profile} />;
+  return (
+    <>
+      {nameSynthetic && (
+        <div className="mx-auto max-w-6xl px-4 pt-6">
+          <SyntheticDataBanner scope="profile" />
+        </div>
+      )}
+      <SchoolProfileContent profile={profile} />
+    </>
+  );
 }

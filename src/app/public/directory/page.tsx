@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import { getTranslations, getLocale } from 'next-intl/server';
 import { prisma } from '@/lib/db';
 import { DirectoryFilters } from '@/components/public/DirectoryFilters';
+import { SyntheticDataBanner } from '@/components/public/SyntheticDataBanner';
 import { deriveResultFields, DIRECTORY_LEVEL_BADGE } from '@/lib/public/schoolProfile';
 import type { Prisma } from '@prisma/client';
 
@@ -80,6 +81,8 @@ export default async function DirectoryPage(props: {
         selected={{ district, block, category, q }}
         locale={locale}
       />
+
+      {schools.some((s) => s.nameSynthetic) && <SyntheticDataBanner scope="list" />}
 
       <p className="mt-6 text-sm text-text-secondary">
         {total > 0 ? t('showing', { from, to, total }) : t('noResults')}

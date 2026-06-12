@@ -28,6 +28,11 @@
     "feedback": "Dispute & Feedback",
     "feedbackDesc": "Submit a grievance or share feedback"
   },
+  "syntheticData": {
+    "title": "Sample data — not official records",
+    "bodyList": "Some or all of the school names and details shown below are sample data prepared for the pilot. Treat them as illustrative only, not as official records.",
+    "bodyProfile": "The name and details shown for this school are sample data prepared for the pilot. They are not official records and will be replaced once verified information is available."
+  },
   "system": {
     "title": "System Login",
     "subtitle": "Select your role to continue",
